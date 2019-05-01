@@ -1,5 +1,7 @@
 package org.kucro3.jam2.invoke;
 
+import java.lang.reflect.InvocationTargetException;
+
 class ConstructorInvokerLambdaImpl extends ConstructorInvoker {
 	ConstructorInvokerLambdaImpl(Class<?> declaringClass, int modifier, Class<?>[] arguments,
                                  LambdaInvocation invocation)
@@ -9,9 +11,13 @@ class ConstructorInvokerLambdaImpl extends ConstructorInvoker {
 	}
 	
 	@Override
-	public Object newInstance(Object... args)
+	public Object newInstance(Object... args) throws InvocationTargetException
 	{
-		return invocation.newInstance(args);
+		try {
+			return invocation.newInstance(args);
+		} catch (Exception e) {
+			throw new InvocationTargetException(e);
+		}
 	}
 	
 	final LambdaInvocation invocation;

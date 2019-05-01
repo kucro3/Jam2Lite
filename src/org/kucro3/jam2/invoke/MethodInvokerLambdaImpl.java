@@ -1,5 +1,7 @@
 package org.kucro3.jam2.invoke;
 
+import java.lang.reflect.InvocationTargetException;
+
 class MethodInvokerLambdaImpl extends MethodInvoker {
 	MethodInvokerLambdaImpl(Class<?> declaringClass, int modifier, String name, Class<?> returnType,
                             Class<?>[] arguments, LambdaInvocation invocation)
@@ -9,9 +11,13 @@ class MethodInvokerLambdaImpl extends MethodInvoker {
 	}
 	
 	@Override
-	public Object invoke(Object obj, Object... args)
+	public Object invoke(Object obj, Object... args) throws InvocationTargetException
 	{
-		return invocation.invoke(obj, args);
+		try {
+			return invocation.invoke(obj, args);
+		} catch (Exception e) {
+			throw new InvocationTargetException(e);
+		}
 	}
 	
 	final LambdaInvocation invocation;

@@ -17,12 +17,18 @@ public abstract class FieldInvoker implements Opcodes {
 		this.name = name;
 		this.type = type;
 	}
+
+	public static FieldInvoker newInvokeByReflection(Field field)
+	{
+		visibilityCheck(field);
+
+		return new FieldInvokerReflectionImpl(field);
+	}
 	
 	public static FieldInvoker newInvokerByLambda(Field field)
 	{
-		if(!Modifier.isPublic(field.getModifiers()))
-			throw new IllegalArgumentException("field unaccessable");
-		
+		visibilityCheck(field);
+
 		LambdaGet get;
 		LambdaSet set;
 		
@@ -61,6 +67,12 @@ public abstract class FieldInvoker implements Opcodes {
 		
 		return new FieldInvokerLambdaImpl(field.getDeclaringClass(), field.getModifiers(),
 				field.getName(), field.getType(), get, set);
+	}
+
+	static void visibilityCheck(Field field)
+	{
+		if(!Modifier.isPublic(field.getModifiers()))
+			throw new IllegalArgumentException("field unaccessable");
 	}
 	
 	public Class<?> getDeclaringClass()

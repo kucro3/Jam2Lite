@@ -6,6 +6,7 @@ import org.kucro3.jam2.util.Jam2Util.CallingType;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -19,14 +20,20 @@ public abstract class MethodInvoker implements Opcodes {
 		this.modifier = modifier;
 		this.descriptor = Jam2Util.toDescriptor(name, returnType, arguments);
 	}
-	
+
+	public static MethodInvoker newInvokerByReflection(Method method)
+	{
+		visibilityCheck(method);
+
+		return new MethodInvokerReflectionImpl(method);
+	}
+
 	public static MethodInvoker newInvokerByLambda(Method method)
 	{
-		if(!Modifier.isPublic(method.getModifiers()))
-			throw new IllegalArgumentException("method unaccessable");
-	
+		visibilityCheck(method);
+
 		LambdaInvocation invocation;
-		
+
 		String name;
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 		cw.visit(
@@ -35,20 +42,26 @@ public abstract class MethodInvoker implements Opcodes {
 				name = "org/kucro3/jam2/invoke/MethodInvoker$" + Jam2Util.generateUUIDForClassName(),
 				null,
 				"java/lang/Object",
-				new String[] {"org/kucro3/jam2/invoke/MethodInvokerLambdaImpl$LambdaInvocation"});
+				new String[]{"org/kucro3/jam2/invoke/MethodInvokerLambdaImpl$LambdaInvocation"});
 		Jam2Util.pushCaller(cw, ACC_PUBLIC, "invoke", method, CallingType.fromMethod(method), true, true);
 		Jam2Util.pushEmptyConstructor(cw, ACC_PUBLIC, Object.class);
 		cw.visitEnd();
-		
+
 		try {
 			invocation = (LambdaInvocation) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(name), cw).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);
 		}
-		
+
 		return new MethodInvokerLambdaImpl(method.getDeclaringClass(), method.getModifiers(),
 				method.getName(), method.getReturnType(), method.getParameterTypes(), invocation);
+	}
+
+	private static void visibilityCheck(Method method)
+	{
+		if (!Modifier.isPublic(method.getModifiers()))
+			throw new IllegalArgumentException("method unaccessable");
 	}
 	
 	public final Class<?> getDeclaringClass()
@@ -76,7 +89,7 @@ public abstract class MethodInvoker implements Opcodes {
 		return modifier;
 	}
 	
-	public abstract Object invoke(Object obj, Object... args);
+	public abstract Object invoke(Object obj, Object... args) throws InvocationTargetException;
 	
 	public String getDescriptor()
 	{

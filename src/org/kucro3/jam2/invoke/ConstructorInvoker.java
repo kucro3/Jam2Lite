@@ -6,6 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
 import static org.kucro3.jam2.util.Jam2Util.toConstructorDescriptor;
@@ -18,11 +19,17 @@ public abstract class ConstructorInvoker implements Opcodes {
 		this.arguments = arguments;
 		this.descriptor = toConstructorDescriptor(arguments);
 	}
-	
-	public static ConstructorInvoker newInvoker(Constructor<?> constructor)
+
+	public static ConstructorInvoker newInvokeByReflection(Constructor<?> constructor)
 	{
-		if(!Modifier.isPublic(constructor.getModifiers()))
-			throw new IllegalArgumentException("constructor unaccessable");
+		visibilityCheck(constructor);
+
+		return new ConstructorInvokerReflectionImpl(constructor);
+	}
+	
+	public static ConstructorInvoker newInvokerByLambda(Constructor<?> constructor)
+	{
+		visibilityCheck(constructor);
 		
 		String name = "org/kucro3/jam2/invoke/ConstructorInvoker$" + Jam2Util.generateUUIDForClassName();
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -46,6 +53,13 @@ public abstract class ConstructorInvoker implements Opcodes {
 		return new ConstructorInvokerLambdaImpl(constructor.getDeclaringClass(), constructor.getModifiers(),
 				constructor.getParameterTypes(), invocation);
 	}
+
+	private static void visibilityCheck(Constructor<?> constructor)
+	{
+		if(!Modifier.isPublic(constructor.getModifiers()) ||
+				Modifier.isAbstract(constructor.getModifiers()))
+			throw new IllegalArgumentException("constructor unaccessable or not constructable");
+	}
 	
 	public String getDescriptor()
 	{
@@ -62,7 +76,7 @@ public abstract class ConstructorInvoker implements Opcodes {
 		return arguments;
 	}
 	
-	public abstract Object newInstance(Object... args);
+	public abstract Object newInstance(Object... args) throws InvocationTargetException;
 	
 	final String descriptor;
 	
