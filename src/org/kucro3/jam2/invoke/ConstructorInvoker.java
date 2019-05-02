@@ -1,6 +1,6 @@
 package org.kucro3.jam2.invoke;
 
-import org.kucro3.jam2.invoke.ConstructorInvokerLambdaImpl.LambdaInvocation;
+import org.kucro3.jam2.invoke.ConstructorInvokerASMImpl.ASMInvocation;
 import org.kucro3.jam2.util.Jam2Util;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -20,14 +20,14 @@ public abstract class ConstructorInvoker implements Opcodes {
 		this.descriptor = toConstructorDescriptor(arguments);
 	}
 
-	public static ConstructorInvoker newInvokeByReflection(Constructor<?> constructor)
+	public static ConstructorInvoker newInvokerByReflection(Constructor<?> constructor)
 	{
 		visibilityCheck(constructor);
 
 		return new ConstructorInvokerReflectionImpl(constructor);
 	}
 	
-	public static ConstructorInvoker newInvokerByLambda(Constructor<?> constructor)
+	public static ConstructorInvoker newInvokerByASM(Constructor<?> constructor)
 	{
 		visibilityCheck(constructor);
 		
@@ -37,20 +37,20 @@ public abstract class ConstructorInvoker implements Opcodes {
 				name,
 				null, 
 				"java/lang/Object", 
-				new String[] {"org/kucro3/jam2/invoke/ConstructorInvokerLambdaImpl$LambdaInvocation"});
+				new String[] {"org/kucro3/jam2/invoke/ConstructorInvokerASMImpl$ASMInvocation"});
 		
 		Jam2Util.pushEmptyConstructor(cw, ACC_PUBLIC, Object.class);
 		Jam2Util.pushNewInstance(cw, ACC_PUBLIC | ACC_VARARGS, "newInstance", constructor, true, true);
 		
-		LambdaInvocation invocation;
+		ASMInvocation invocation;
 		try {
-			invocation = (LambdaInvocation) Jam2Util.newClass(name.replace('/', '.'), cw).newInstance();
+			invocation = (ASMInvocation) Jam2Util.newClass(name.replace('/', '.'), cw).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);
 		}
 		
-		return new ConstructorInvokerLambdaImpl(constructor.getDeclaringClass(), constructor.getModifiers(),
+		return new ConstructorInvokerASMImpl(constructor.getDeclaringClass(), constructor.getModifiers(),
 				constructor.getParameterTypes(), invocation);
 	}
 
@@ -58,7 +58,7 @@ public abstract class ConstructorInvoker implements Opcodes {
 	{
 		if(!Modifier.isPublic(constructor.getModifiers()) ||
 				Modifier.isAbstract(constructor.getModifiers()))
-			throw new IllegalArgumentException("constructor unaccessable or not constructable");
+			throw new IllegalArgumentException("constructor inaccessable or not constructable");
 	}
 	
 	public String getDescriptor()

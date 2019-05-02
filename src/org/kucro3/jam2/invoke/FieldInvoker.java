@@ -1,7 +1,7 @@
 package org.kucro3.jam2.invoke;
 
-import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaGet;
-import org.kucro3.jam2.invoke.FieldInvokerLambdaImpl.LambdaSet;
+import org.kucro3.jam2.invoke.FieldInvokerASMImpl.ASMGet;
+import org.kucro3.jam2.invoke.FieldInvokerASMImpl.ASMSet;
 import org.kucro3.jam2.util.Jam2Util;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -25,12 +25,12 @@ public abstract class FieldInvoker implements Opcodes {
 		return new FieldInvokerReflectionImpl(field);
 	}
 	
-	public static FieldInvoker newInvokerByLambda(Field field)
+	public static FieldInvoker newInvokerByASM(Field field)
 	{
 		visibilityCheck(field);
 
-		LambdaGet get;
-		LambdaSet set;
+		ASMGet get;
+		ASMSet set;
 		
 		String getterName;
 		String setterName;
@@ -41,7 +41,7 @@ public abstract class FieldInvoker implements Opcodes {
 				getterName = "org/kucro3/jam2/invoke/FieldGetter$" + Jam2Util.generateUUIDForClassName(),
 				null,
 				"java/lang/Object",
-				new String[] {"org/kucro3/jam2/invoke/FieldInvokerLambdaImpl$LambdaGet"});
+				new String[] {"org/kucro3/jam2/invoke/FieldInvokerASMImpl$ASMGet"});
 		Jam2Util.pushFieldGetter(getter, ACC_PUBLIC, "get", field, true, true);
 		Jam2Util.pushEmptyConstructor(getter, ACC_PUBLIC, Object.class);
 		getter.visitEnd();
@@ -52,27 +52,27 @@ public abstract class FieldInvoker implements Opcodes {
 				setterName = "org/kucro3/jam2/invoke/FieldSetter$" + Jam2Util.generateUUIDForClassName(),
 				null, 
 				"java/lang/Object",
-				new String[] {"org/kucro3/jam2/invoke/FieldInvokerLambdaImpl$LambdaSet"});
+				new String[] {"org/kucro3/jam2/invoke/FieldInvokerASMImpl$ASMSet"});
 		Jam2Util.pushFieldSetter(setter, ACC_PUBLIC, "set", field, true);
 		Jam2Util.pushEmptyConstructor(setter, ACC_PUBLIC, Object.class);
 		setter.visitEnd();
 		
 		try {
-			get = (LambdaGet) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(getterName), getter).newInstance();
-			set = (LambdaSet) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(setterName), setter).newInstance();
+			get = (ASMGet) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(getterName), getter).newInstance();
+			set = (ASMSet) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(setterName), setter).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);
 		}
 		
-		return new FieldInvokerLambdaImpl(field.getDeclaringClass(), field.getModifiers(),
+		return new FieldInvokerASMImpl(field.getDeclaringClass(), field.getModifiers(),
 				field.getName(), field.getType(), get, set);
 	}
 
 	static void visibilityCheck(Field field)
 	{
 		if(!Modifier.isPublic(field.getModifiers()))
-			throw new IllegalArgumentException("field unaccessable");
+			throw new IllegalArgumentException("field inaccessable");
 	}
 	
 	public Class<?> getDeclaringClass()

@@ -1,6 +1,6 @@
 package org.kucro3.jam2.invoke;
 
-import org.kucro3.jam2.invoke.MethodInvokerLambdaImpl.LambdaInvocation;
+import org.kucro3.jam2.invoke.MethodInvokerASMImpl.ASMInvocation;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.Jam2Util.CallingType;
 import org.objectweb.asm.ClassWriter;
@@ -28,11 +28,11 @@ public abstract class MethodInvoker implements Opcodes {
 		return new MethodInvokerReflectionImpl(method);
 	}
 
-	public static MethodInvoker newInvokerByLambda(Method method)
+	public static MethodInvoker newInvokerByASM(Method method)
 	{
 		visibilityCheck(method);
 
-		LambdaInvocation invocation;
+		ASMInvocation invocation;
 
 		String name;
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -42,26 +42,26 @@ public abstract class MethodInvoker implements Opcodes {
 				name = "org/kucro3/jam2/invoke/MethodInvoker$" + Jam2Util.generateUUIDForClassName(),
 				null,
 				"java/lang/Object",
-				new String[]{"org/kucro3/jam2/invoke/MethodInvokerLambdaImpl$LambdaInvocation"});
+				new String[]{"org/kucro3/jam2/invoke/MethodInvokerASMImpl$ASMInvocation"});
 		Jam2Util.pushCaller(cw, ACC_PUBLIC, "invoke", method, CallingType.fromMethod(method), true, true);
 		Jam2Util.pushEmptyConstructor(cw, ACC_PUBLIC, Object.class);
 		cw.visitEnd();
 
 		try {
-			invocation = (LambdaInvocation) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(name), cw).newInstance();
+			invocation = (ASMInvocation) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(name), cw).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);
 		}
 
-		return new MethodInvokerLambdaImpl(method.getDeclaringClass(), method.getModifiers(),
+		return new MethodInvokerASMImpl(method.getDeclaringClass(), method.getModifiers(),
 				method.getName(), method.getReturnType(), method.getParameterTypes(), invocation);
 	}
 
 	private static void visibilityCheck(Method method)
 	{
 		if (!Modifier.isPublic(method.getModifiers()))
-			throw new IllegalArgumentException("method unaccessable");
+			throw new IllegalArgumentException("method inaccessable");
 	}
 	
 	public final Class<?> getDeclaringClass()

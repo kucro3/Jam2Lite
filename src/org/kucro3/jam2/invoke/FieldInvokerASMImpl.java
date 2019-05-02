@@ -1,8 +1,8 @@
 package org.kucro3.jam2.invoke;
 
-class FieldInvokerLambdaImpl extends FieldInvoker {
-	FieldInvokerLambdaImpl(Class<?> declaringClass, int modifier, String name, Class<?> type,
-                           LambdaGet getter, LambdaSet setter)
+class FieldInvokerASMImpl extends FieldInvoker {
+	FieldInvokerASMImpl(Class<?> declaringClass, int modifier, String name, Class<?> type,
+                        ASMGet getter, ASMSet setter)
 	{
 		super(declaringClass, modifier, name, type);
 		this.getter = getter;
@@ -21,16 +21,16 @@ class FieldInvokerLambdaImpl extends FieldInvoker {
 		setter.set(obj, args);
 	}
 	
-	final LambdaGet getter;
+	final ASMGet getter;
 	
-	final LambdaSet setter;
+	final ASMSet setter;
 	
-	public static interface LambdaGet
+	public static interface ASMGet
 	{
 		public Object get(Object obj);
 	}
 	
-	public static interface LambdaSet
+	public static interface ASMSet
 	{
 		public void set(Object obj, Object args);
 	}

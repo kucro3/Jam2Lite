@@ -2,9 +2,9 @@ package org.kucro3.jam2.invoke;
 
 import java.lang.reflect.InvocationTargetException;
 
-class ConstructorInvokerLambdaImpl extends ConstructorInvoker {
-	ConstructorInvokerLambdaImpl(Class<?> declaringClass, int modifier, Class<?>[] arguments,
-                                 LambdaInvocation invocation)
+class ConstructorInvokerASMImpl extends ConstructorInvoker {
+	ConstructorInvokerASMImpl(Class<?> declaringClass, int modifier, Class<?>[] arguments,
+							  ASMInvocation invocation)
 	{
 		super(declaringClass, modifier, arguments);
 		this.invocation = invocation;
@@ -20,9 +20,9 @@ class ConstructorInvokerLambdaImpl extends ConstructorInvoker {
 		}
 	}
 	
-	final LambdaInvocation invocation;
+	final ASMInvocation invocation;
 	
-	public static interface LambdaInvocation
+	public static interface ASMInvocation
 	{
 		public Object newInstance(Object... args);
 	}
