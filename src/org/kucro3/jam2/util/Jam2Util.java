@@ -1,7 +1,12 @@
 package org.kucro3.jam2.util;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.MethodNode;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -43,7 +48,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	{
 		return INSTANCE.defineClass(name, byts, off, len);
 	}
-	
+
 	public static String generateUUIDForClassName()
 	{
 		return UUID.randomUUID().toString().replace('-', '_');
