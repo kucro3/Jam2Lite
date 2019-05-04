@@ -1,5 +1,7 @@
 package org.kucro3.jam2.util.annotation;
 
+import com.theredpixelteam.redtea.util.Optional;
+
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
