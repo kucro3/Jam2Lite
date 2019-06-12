@@ -9,15 +9,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
-import static org.kucro3.jam2.util.Jam2Util.toConstructorDescriptor;
-
-public abstract class ConstructorInvoker implements Opcodes {
+public abstract class ConstructorInvoker extends MethodInvoker implements Opcodes {
 	protected ConstructorInvoker(Class<?> declaringClass, int modifier, Class<?>[] arguments)
 	{
-		this.declaringClass = declaringClass;
-		this.modifier = modifier;
-		this.arguments = arguments;
-		this.descriptor = toConstructorDescriptor(arguments);
+		super(declaringClass, modifier, "<init>", declaringClass, arguments);
 	}
 
 	public static ConstructorInvoker newInvokerByReflection(Constructor<?> constructor)
@@ -60,29 +55,9 @@ public abstract class ConstructorInvoker implements Opcodes {
 				Modifier.isAbstract(constructor.getModifiers()))
 			throw new IllegalArgumentException("constructor inaccessable or not constructable");
 	}
-	
-	public String getDescriptor()
+
+	public Object newInstance(Object... args) throws InvocationTargetException
 	{
-		return descriptor;
+		return invoke(null, args);
 	}
-	
-	public int getModifier()
-	{
-		return modifier;
-	}
-	
-	public Class<?>[] getArguments()
-	{
-		return arguments;
-	}
-	
-	public abstract Object newInstance(Object... args) throws InvocationTargetException;
-	
-	final String descriptor;
-	
-	final Class<?> declaringClass;
-	
-	final int modifier;
-	
-	final Class<?>[] arguments;
 }

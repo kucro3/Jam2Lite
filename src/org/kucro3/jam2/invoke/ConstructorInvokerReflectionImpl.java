@@ -13,7 +13,7 @@ class ConstructorInvokerReflectionImpl extends ConstructorInvoker {
     }
 
     @Override
-    public Object newInstance(Object... args) throws InvocationTargetException
+    public Object invoke(Object obj, Object... args) throws InvocationTargetException
     {
         try {
             return constructor.newInstance(args);
