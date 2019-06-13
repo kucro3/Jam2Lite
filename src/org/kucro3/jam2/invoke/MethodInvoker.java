@@ -83,6 +83,11 @@ public abstract class MethodInvoker implements Opcodes {
 	{
 		return arguments;
 	}
+
+	public int getArgumentCount()
+	{
+		return getArguments().length;
+	}
 	
 	public int getModifier()
 	{
