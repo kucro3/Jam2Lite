@@ -75,7 +75,7 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
                                        Class<?> type, Class<?>[] constructorArguments, Class<?>[] exceptions, boolean varargs, boolean objReturn)
 	{
 		pushNewInstance(cw, modifiers, methodName, Type.getInternalName(type),
-				varargs ? null : _toDescriptors(constructorArguments), _toDescriptors(exceptions), varargs, objReturn);
+				varargs ? new String[0] : _toDescriptors(constructorArguments), _toDescriptors(exceptions), varargs, objReturn);
 	}
 	
 	public static void pushNewInstance(ClassVisitor cw, int modifiers, String methodName,

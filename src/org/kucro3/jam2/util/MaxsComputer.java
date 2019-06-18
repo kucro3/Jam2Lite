@@ -6,6 +6,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class MaxsComputer extends MethodVisitor implements Opcodes {
+	public static void main(String[] args)
+	{
+		new MaxsComputer(null, "([Ljava/lang/Object;)Ljava/lang/Object;", false);
+	}
+
 	public MaxsComputer(MethodVisitor mv) 
 	{
 		super(Version.getASMVersion(), mv);
@@ -36,12 +41,15 @@ public class MaxsComputer extends MethodVisitor implements Opcodes {
 					else
 						break;
 				else if(temp == '[')
-					for(i++; i < descriptor.length(); i++)
+					ARRAY_LOOP: for(i++; i < descriptor.length(); i++)
 						if((temp = descriptor.charAt(i)) == '[')
 							continue;
 						else if(temp == 'L')
 							if((i = descriptor.indexOf(';', i)) != -1)
+							{
 								length += LENGTH_OBJECT;
+								break ARRAY_LOOP;
+							}
 							else
 								break LOOP;
 						else
