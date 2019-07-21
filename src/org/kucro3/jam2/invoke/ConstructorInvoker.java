@@ -1,5 +1,6 @@
 package org.kucro3.jam2.invoke;
 
+import org.kucro3.jam2.ClassDefiner;
 import org.kucro3.jam2.invoke.ConstructorInvokerASMImpl.ASMInvocation;
 import org.kucro3.jam2.util.Jam2Util;
 import org.objectweb.asm.ClassWriter;
@@ -21,8 +22,13 @@ public abstract class ConstructorInvoker extends MethodInvoker implements Opcode
 
 		return new ConstructorInvokerReflectionImpl(constructor);
 	}
-	
+
 	public static ConstructorInvoker newInvokerByASM(Constructor<?> constructor)
+	{
+		return newInvokerByASM(constructor, Jam2Util::newClass);
+	}
+	
+	public static ConstructorInvoker newInvokerByASM(Constructor<?> constructor, ClassDefiner classDefiner)
 	{
 		visibilityCheck(constructor);
 		
@@ -39,7 +45,13 @@ public abstract class ConstructorInvoker extends MethodInvoker implements Opcode
 		
 		ASMInvocation invocation;
 		try {
-			invocation = (ASMInvocation) Jam2Util.newClass(name.replace('/', '.'), cw).newInstance();
+			byte[] invocationByts = cw.toByteArray();
+			invocation = (ASMInvocation) classDefiner.defineClass(
+					Jam2Util.fromInternalNameToCanonical(name),
+					invocationByts,
+					0,
+					invocationByts.length,
+					null).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);

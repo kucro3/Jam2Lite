@@ -1,5 +1,6 @@
 package org.kucro3.jam2.invoke;
 
+import org.kucro3.jam2.ClassDefiner;
 import org.kucro3.jam2.invoke.FieldInvokerASMImpl.ASMGet;
 import org.kucro3.jam2.invoke.FieldInvokerASMImpl.ASMSet;
 import org.kucro3.jam2.util.Jam2Util;
@@ -24,8 +25,13 @@ public abstract class FieldInvoker implements Opcodes {
 
 		return new FieldInvokerReflectionImpl(field);
 	}
-	
+
 	public static FieldInvoker newInvokerByASM(Field field)
+	{
+		return newInvokerByASM(field, Jam2Util::newClass);
+	}
+
+	public static FieldInvoker newInvokerByASM(Field field, ClassDefiner classDefiner)
 	{
 		visibilityCheck(field);
 
@@ -58,8 +64,21 @@ public abstract class FieldInvoker implements Opcodes {
 		setter.visitEnd();
 		
 		try {
-			get = (ASMGet) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(getterName), getter).newInstance();
-			set = (ASMSet) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(setterName), setter).newInstance();
+			byte[] getByts = getter.toByteArray();
+			get = (ASMGet) classDefiner.defineClass(
+					Jam2Util.fromInternalNameToCanonical(getterName),
+					getByts,
+					0,
+					getByts.length,
+					null).newInstance();
+
+			byte[] setByts = setter.toByteArray();
+			set = (ASMSet) classDefiner.defineClass(
+					Jam2Util.fromInternalNameToCanonical(setterName),
+					setByts,
+					0,
+					setByts.length,
+					null).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);

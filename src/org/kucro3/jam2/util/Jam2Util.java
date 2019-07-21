@@ -15,6 +15,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.function.Function;
 
@@ -47,6 +48,11 @@ public final class Jam2Util extends ClassLoader implements Opcodes {
 	public static Class<?> newClass(String name, byte[] byts, int off, int len)
 	{
 		return INSTANCE.defineClass(name, byts, off, len);
+	}
+
+	public static Class<?> newClass(String name, byte[] byts, int off, int len, ProtectionDomain domain)
+	{
+		return INSTANCE.defineClass(name, byts, off, len, domain);
 	}
 
 	public static String generateUUIDForClassName()

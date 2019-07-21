@@ -1,5 +1,6 @@
 package org.kucro3.jam2.invoke;
 
+import org.kucro3.jam2.ClassDefiner;
 import org.kucro3.jam2.invoke.MethodInvokerASMImpl.ASMInvocation;
 import org.kucro3.jam2.util.Jam2Util;
 import org.kucro3.jam2.util.Jam2Util.CallingType;
@@ -30,6 +31,11 @@ public abstract class MethodInvoker implements Opcodes {
 
 	public static MethodInvoker newInvokerByASM(Method method)
 	{
+		return newInvokerByASM(method, Jam2Util::newClass);
+	}
+
+	public static MethodInvoker newInvokerByASM(Method method, ClassDefiner classDefiner)
+	{
 		visibilityCheck(method);
 
 		ASMInvocation invocation;
@@ -48,7 +54,13 @@ public abstract class MethodInvoker implements Opcodes {
 		cw.visitEnd();
 
 		try {
-			invocation = (ASMInvocation) Jam2Util.newClass(Jam2Util.fromInternalNameToCanonical(name), cw).newInstance();
+			byte[] invocationByts = cw.toByteArray();
+			invocation = (ASMInvocation) classDefiner.defineClass(
+					Jam2Util.fromInternalNameToCanonical(name),
+					invocationByts,
+					0,
+					invocationByts.length,
+					null).newInstance();
 		} catch (Exception e) {
 			// unused
 			throw new IllegalStateException(e);
